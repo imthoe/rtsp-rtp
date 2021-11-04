@@ -1,7 +1,9 @@
 import socket
+import asyncio, socket
 
 from .primitives import RTPDatagram, NalUnit
 from .primitives.nal_unit import NalUnitError
+
 
 
 class RTPStream:
@@ -26,7 +28,8 @@ class RTPStream:
     def __del__(self):
         self._close()
 
-    def generate(self, buf_size=2048):
+    # set higher UDP Buffer to avoid packet loss
+    def generate(self, buf_size=16384*4):
         while True:
             data = memoryview(self.socket.recv(buf_size))
             if data:
@@ -38,3 +41,4 @@ class RTPStream:
                     pass
 
                 yield nal_payload
+

