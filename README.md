@@ -1,5 +1,13 @@
 # rtsp-rtp
 
+## Description
+
+This fork changes a few things in the library to exploit an authentication bypass in the TP-Link Tapo C200 Camera, which allows anyone with network access to stream the video feed from the camera. Only works when "Privacy Mode" is disabled.
+
+Credits for finding this bypass go to @drmnsamoliu
+
+https://drmnsamoliu.github.io/video.html
+
 ### What?
 This is a minimal toolset needed to get an  H264/AVC stream from RTSP-enabled camera, written as a PoC in pure Python with no external dependencies.
 
@@ -14,24 +22,16 @@ It is **not** a fully featured, generic, production ready toolset, but rather an
 
 ### Usage
 ```
-from control import RTSPClient
-from transport import RTPStream
+usage: PoC.py [-h] host file
 
+TP-Link Tapo C200 Auth Bypass PoC
 
-url = 'rtsp://username:password@10.0.0.1:554/Streaming/Channels/101'
+positional arguments:
+  host        IP Address of the Host
+  file        filename to write H264 output to
 
-with RTSPClient(url) as client, RTPStream() as stream:
-    # send RTSP SETUP
-    client.setup(stream.port)
-
-    # initiate streaming
-    client.play()
-
-    with open('/tmp/stream','wb+') as f:
-        for chunk in stream.generate():
-            f.write(chunk)
-            # f.flush()
-
+optional arguments:
+  -h, --help  show this help message and exit
 ```
 
-Also, take a look at [example.py](example.py)
+The output file can then be viewed with ffmpeg like so `ffplay -i <file>`
